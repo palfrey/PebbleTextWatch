@@ -110,7 +110,6 @@ void display_time(struct tm * tm)
 	char textLine3[BUFFER_SIZE];
 	
 	time_to_3words(tm->tm_hour, tm->tm_min, textLine1, textLine2, textLine3, BUFFER_SIZE);
-	app_log(APP_LOG_LEVEL_INFO, __FILE__, __LINE__, "%d:%d", tm->tm_hour, tm->tm_min);
 	
 	if (needToUpdateLine(&line1, line1Str, textLine1)) {
 		updateLineTo(&line1, line1Str, textLine1);	
@@ -167,7 +166,6 @@ void up_single_click_handler(ClickRecognizerRef recognizer, void *context) {
 			t.tm_hour -= 24;
 		}
 	}
-	app_log(APP_LOG_LEVEL_INFO, __FILE__, __LINE__, "up - %d:%d", t.tm_hour, t.tm_min);
 	display_time(&t);
 }
 
