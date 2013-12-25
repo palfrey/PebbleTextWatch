@@ -228,6 +228,7 @@ void handle_init() {
 	batteryLayer = layer_create(GRect(0, 158, 144, 10));
 	layer_set_update_proc(batteryLayer, update_battery_layer);
 	layer_mark_dirty(batteryLayer);
+	battery_state_service_subscribe(handle_battery_change);
 
 	// 1st line layer
 	line1.currentLayer = text_layer_create(GRect(0, TOP_TEXT, 144, 50));
