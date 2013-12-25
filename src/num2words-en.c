@@ -122,3 +122,23 @@ void time_to_3words(int hours, int minutes, char *line1, char *line2, char *line
 		}
 	}
 }
+
+void date_to_words(struct tm* tm, char *line, size_t length) {
+  char *postfix;
+  if (tm->tm_mday == 1 || tm->tm_mday == 21 || tm->tm_mday == 31) {
+    postfix = "st";
+  }
+  else if (tm->tm_mday == 2 || tm->tm_mday == 22) {
+    postfix = "nd";
+  }
+  else if (tm->tm_mday == 3 || tm->tm_mday == 23) {
+    postfix = "rd";
+  }
+  else {
+    postfix = "th";
+  }
+  int sofar = strftime(line, length, "%A, %d", tm);
+  strcat(line, postfix);
+  int used = sofar + strlen(postfix);
+  strftime(&line[used], length-used, " %B %Y", tm);  
+}

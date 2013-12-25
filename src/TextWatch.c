@@ -20,12 +20,14 @@ typedef struct {
 Line line1;
 Line line2;
 Line line3;
+Line dateLine;
 
 struct tm t;
 
 static char line1Str[2][BUFFER_SIZE];
 static char line2Str[2][BUFFER_SIZE];
 static char line3Str[2][BUFFER_SIZE];
+static char dateStr[2][BUFFER_SIZE];
 	
 // Animation handler
 void animationStoppedHandler(Animation *animation, bool finished, void *context)
@@ -104,12 +106,14 @@ bool needToUpdateLine(Line *line, char lineStr[2][BUFFER_SIZE], char *nextValue)
 // Update screen based on new time
 void display_time(struct tm * tm)
 {
-	// The current time text will be stored in the following 3 strings
+	// The current time text will be stored in the following strings
 	char textLine1[BUFFER_SIZE];
 	char textLine2[BUFFER_SIZE];
 	char textLine3[BUFFER_SIZE];
-	
+	char newDateText[BUFFER_SIZE];
+
 	time_to_3words(tm->tm_hour, tm->tm_min, textLine1, textLine2, textLine3, BUFFER_SIZE);
+	date_to_words(tm, newDateText, BUFFER_SIZE);
 	
 	if (needToUpdateLine(&line1, line1Str, textLine1)) {
 		updateLineTo(&line1, line1Str, textLine1);	
@@ -120,16 +124,21 @@ void display_time(struct tm * tm)
 	if (needToUpdateLine(&line3, line3Str, textLine3)) {
 		updateLineTo(&line3, line3Str, textLine3);	
 	}
+	if (needToUpdateLine(&dateLine, dateStr, newDateText)) {
+		updateLineTo(&dateLine, dateStr, newDateText);
+	}
 }
 
 // Update screen without animation first time we start the watchface
 void display_initial_time(struct tm *tm)
 {
 	time_to_3words(tm->tm_hour, tm->tm_min, line1Str[0], line2Str[0], line3Str[0], BUFFER_SIZE);
+	date_to_words(tm, dateStr[0], BUFFER_SIZE);
 	
 	text_layer_set_text(line1.currentLayer, line1Str[0]);
 	text_layer_set_text(line2.currentLayer, line2Str[0]);
 	text_layer_set_text(line3.currentLayer, line3Str[0]);
+	text_layer_set_text(dateLine.currentLayer, dateStr[0]);
 }
 
 // Configure the first line of text
@@ -148,6 +157,15 @@ void configureLightLayer(TextLayer *textlayer)
 	text_layer_set_text_color(textlayer, GColorWhite);
 	text_layer_set_background_color(textlayer, GColorClear);
 	text_layer_set_text_alignment(textlayer, GTextAlignmentLeft);
+}
+
+void configureDateLayer(TextLayer *textlayer)
+{
+	text_layer_set_font(textlayer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	text_layer_set_text_color(textlayer, GColorWhite);
+	text_layer_set_background_color(textlayer, GColorClear);
+	text_layer_set_text_alignment(textlayer, GTextAlignmentCenter);
+	text_layer_set_overflow_mode(textlayer, GTextOverflowModeFill);
 }
 
 /** 
@@ -229,6 +247,12 @@ void handle_init() {
 	configureLightLayer(line3.currentLayer);
 	configureLightLayer(line3.nextLayer);
 
+	// date layer
+	dateLine.currentLayer = text_layer_create(GRect(0, 118, 144, 40));
+	dateLine.nextLayer = text_layer_create(GRect(144, 118, 144, 40));
+	configureDateLayer(dateLine.currentLayer);
+	configureDateLayer(dateLine.nextLayer);
+
 	// Configure time on init
 	time_t now;
 	now = time(NULL);
@@ -244,6 +268,8 @@ void handle_init() {
 	layer_add_child(windowLayer, text_layer_get_layer(line2.nextLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(line3.currentLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(line3.nextLayer));
+	layer_add_child(windowLayer, text_layer_get_layer(dateLine.currentLayer));
+	layer_add_child(windowLayer, text_layer_get_layer(dateLine.nextLayer));
 	layer_add_child(windowLayer, batteryLayer);
 	
 #if DEBUG
