@@ -189,26 +189,29 @@ void click_config_provider() {
 
 #endif
 
+#define TOP_TEXT 0
+#define TEXT_SIZE (55-18)
+
 void handle_init() {
 	window = window_create();
 	window_stack_push(window, true);
 	window_set_background_color(window, GColorBlack);
 
 	// 1st line layer
-	line1.currentLayer = text_layer_create(GRect(0, 18, 144, 50));
-	line1.nextLayer = text_layer_create(GRect(144, 18, 144, 50));
+	line1.currentLayer = text_layer_create(GRect(0, TOP_TEXT, 144, 50));
+	line1.nextLayer = text_layer_create(GRect(144, TOP_TEXT, 144, 50));
 	configureBoldLayer(line1.currentLayer);
 	configureBoldLayer(line1.nextLayer);
 
 	// 2nd layers
-	line2.currentLayer = text_layer_create(GRect(0, 55, 144, 50));
-	line2.nextLayer = text_layer_create(GRect(144, 55, 144, 50));
+	line2.currentLayer = text_layer_create(GRect(0, TOP_TEXT + TEXT_SIZE, 144, 50));
+	line2.nextLayer = text_layer_create(GRect(144, TOP_TEXT + TEXT_SIZE, 144, 50));
 	configureLightLayer(line2.currentLayer);
 	configureLightLayer(line2.nextLayer);
 
 	// 3rd layers
-	line3.currentLayer = text_layer_create(GRect(0, 92, 144, 50));
-	line3.nextLayer = text_layer_create(GRect(144, 92, 144, 50));
+	line3.currentLayer = text_layer_create(GRect(0, TOP_TEXT + (TEXT_SIZE*2), 144, 50));
+	line3.nextLayer = text_layer_create(GRect(144, TOP_TEXT + (TEXT_SIZE*2), 144, 50));
 	configureLightLayer(line3.currentLayer);
 	configureLightLayer(line3.nextLayer);
 
