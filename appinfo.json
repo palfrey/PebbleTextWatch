@@ -1,0 +1,14 @@
+{
+  "uuid" : "A7B8404E-6799-4982-B753-6CC6B95C8DC0",
+  "shortName" : "TextWatch",
+  "longName" : "TextWatch",
+  "companyName" : "WIP interactive",
+  "versionCode" : 1,
+  "versionLabel" : "1.0",
+  "watchapp" : {
+    "watchface" : true
+  },
+  "resources": {
+    "media": []
+  }
+}
