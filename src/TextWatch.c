@@ -8,6 +8,7 @@
 #define BUFFER_SIZE 44
 
 Window *window;
+Layer *batteryLayer;
 
 typedef struct {
 	TextLayer* currentLayer;
@@ -192,10 +193,25 @@ void click_config_provider() {
 #define TOP_TEXT 0
 #define TEXT_SIZE (55-18)
 
+void update_battery_layer(struct Layer *layer, GContext *ctx) {
+	BatteryChargeState state = battery_state_service_peek();
+	app_log(APP_LOG_LEVEL_INFO, __FILE__, __LINE__, "Battery charge is %d%%", state.charge_percent);
+	graphics_context_set_fill_color(ctx, GColorWhite);
+	graphics_fill_rect(ctx, GRect(0,0, state.charge_percent*(144.0/100),10), 0, GCornerNone);
+}
+
+void handle_battery_change(BatteryChargeState state) {
+	layer_mark_dirty(batteryLayer);
+}
+
 void handle_init() {
 	window = window_create();
 	window_stack_push(window, true);
 	window_set_background_color(window, GColorBlack);
+
+	batteryLayer = layer_create(GRect(0, 158, 144, 10));
+	layer_set_update_proc(batteryLayer, update_battery_layer);
+	layer_mark_dirty(batteryLayer);
 
 	// 1st line layer
 	line1.currentLayer = text_layer_create(GRect(0, TOP_TEXT, 144, 50));
@@ -230,6 +246,7 @@ void handle_init() {
 	layer_add_child(windowLayer, text_layer_get_layer(line2.nextLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(line3.currentLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(line3.nextLayer));
+	layer_add_child(windowLayer, batteryLayer);
 	
 #if DEBUG
 	// Button functionality
