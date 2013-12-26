@@ -310,9 +310,17 @@ void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   display_time(tick_time);
 }
 
+void deinit() {
+	bluetooth_connection_service_unsubscribe();
+	battery_state_service_unsubscribe();
+	tick_timer_service_unsubscribe();
+	window_destroy(window);
+}
+
 int main() {
 	handle_init();
 	tick_timer_service_subscribe(MINUTE_UNIT, &handle_minute_tick);
   	app_event_loop();
+  	deinit();
   	return 0;
 }
