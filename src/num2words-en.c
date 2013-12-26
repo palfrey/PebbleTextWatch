@@ -28,7 +28,7 @@ static const char* const TEENS[] ={
 };
 
 static const char* const TENS[] = {
-  "",
+  "oh",
   "ten",
   "twenty",
   "thirty",
@@ -46,19 +46,19 @@ static size_t append_number(char* words, int num) {
 
   size_t len = 0;
 
-  if (tens_val > 0) {
-    if (tens_val == 1 && num != 10) {
-      strcat(words, TEENS[ones_val]);
-      return strlen(TEENS[ones_val]);
-    }
-    strcat(words, TENS[tens_val]);
-    len += strlen(TENS[tens_val]);
-    if (ones_val > 0) {
-      strcat(words, " ");
-      len += 1;
-    }
+  if (tens_val == 1 && num != 10) {
+    strcat(words, TEENS[ones_val]);
+    return strlen(TEENS[ones_val]);
   }
-
+  if (num != 0) {
+    strcat(words, TENS[tens_val]);
+    len += strlen(TENS[tens_val]);    
+  }
+  if (ones_val > 0) {
+    strcat(words, " ");
+    len += 1;
+  }
+  
   if (ones_val > 0 || num == 0) {
     strcat(words, ONES[ones_val]);
     len += strlen(ONES[ones_val]);
