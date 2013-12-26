@@ -9,6 +9,11 @@
     "watchface" : true
   },
   "resources": {
-    "media": []
+    "media": [
+    {
+    	"type": "png-trans",
+    	"name": "BLUETOOTH",
+    	"file": "bluetooth.png"
+    }]
   }
 }

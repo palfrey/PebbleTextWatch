@@ -1,6 +1,7 @@
 #include "pebble.h"
 #include "pebble_app_info.h"
 #include "pebble_fonts.h"
+#include "resource_ids.auto.h"
 
 #include "num2words-en.h"
 
@@ -9,6 +10,7 @@
 
 Window *window;
 Layer *batteryLayer;
+BitmapLayer * white_image_layer;
 
 typedef struct {
 	TextLayer* currentLayer;
@@ -28,6 +30,17 @@ static char line1Str[2][BUFFER_SIZE];
 static char line2Str[2][BUFFER_SIZE];
 static char line3Str[2][BUFFER_SIZE];
 static char dateStr[2][BUFFER_SIZE];
+
+bool last_connected = true;
+
+void bluetooth_connection_handler(bool connected) {
+	Layer *layer = (Layer*)white_image_layer;
+	layer_set_hidden(layer, connected);
+	if (last_connected != connected && !connected) {
+		vibes_short_pulse();
+	}
+	last_connected = connected;
+}
 	
 // Animation handler
 void animationStoppedHandler(Animation *animation, bool finished, void *context)
@@ -260,9 +273,17 @@ void handle_init() {
 	struct tm *local_t = localtime(&now);
 	memcpy(&t, local_t, sizeof(struct tm));
 	display_initial_time(&t);
-	
-	// Load layers
+
+	GBitmap * white_image = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_WHITE);
+
 	Layer * windowLayer = window_get_root_layer(window);
+  	GRect bounds = layer_get_bounds(windowLayer);
+	GRect image_frame = GRect(bounds.size.w - white_image->bounds.size.w, 0, white_image->bounds.size.w, white_image->bounds.size.h);
+
+	white_image_layer = bitmap_layer_create(image_frame);
+	bitmap_layer_set_bitmap(white_image_layer, white_image);
+
+	// Load layers
   	layer_add_child(windowLayer, text_layer_get_layer(line1.currentLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(line1.nextLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(line2.currentLayer));
@@ -272,6 +293,11 @@ void handle_init() {
 	layer_add_child(windowLayer, text_layer_get_layer(dateLine.currentLayer));
 	layer_add_child(windowLayer, text_layer_get_layer(dateLine.nextLayer));
 	layer_add_child(windowLayer, batteryLayer);
+
+	layer_add_child(windowLayer, bitmap_layer_get_layer(white_image_layer));
+
+	bluetooth_connection_service_subscribe(bluetooth_connection_handler);
+	bluetooth_connection_handler(bluetooth_connection_service_peek());
 	
 #if DEBUG
 	// Button functionality
