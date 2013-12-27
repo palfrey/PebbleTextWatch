@@ -51,7 +51,7 @@ static size_t append_number(char* words, int num, bool use_oh) {
     strcat(words, TEENS[ones_val]);
     return strlen(TEENS[ones_val]);
   }
-  if (num != 0 && use_oh) {
+  if (num != 0 && (use_oh || tens_val > 0)) {
     strcat(words, TENS[tens_val]);
     len += strlen(TENS[tens_val]);    
   }

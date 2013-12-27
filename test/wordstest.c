@@ -17,5 +17,9 @@ int main() {
 	doTime(1, 5);
 	assert(strcmp(line2, "oh") == 0);
 
+	doTime(10, 8);
+	assert(strcmp(line1, "ten") == 0);
+	assert(strcmp(line2, "oh") == 0);
+
 	return 0;
 }
