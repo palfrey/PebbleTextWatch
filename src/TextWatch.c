@@ -4,30 +4,32 @@
 
 #include "num2words-en.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #define BUFFER_SIZE 44
 
-Window *window;
+static Window *window;
 
 typedef struct {
-	TextLayer* currentLayer;
-	TextLayer* nextLayer;	
-	PropertyAnimation* currentAnimation;
-	PropertyAnimation* nextAnimation;
+	TextLayer *currentLayer;
+	TextLayer *nextLayer;	
+	PropertyAnimation *currentAnimation;
+	PropertyAnimation *nextAnimation;
 } Line;
 
-Line line1;
-Line line2;
-Line line3;
+static Line line1;
+static Line line2;
+static Line line3;
 
-struct tm t;
+static struct tm *t;
+static GFont lightFont;
+static GFont boldFont;
 
 static char line1Str[2][BUFFER_SIZE];
 static char line2Str[2][BUFFER_SIZE];
 static char line3Str[2][BUFFER_SIZE];
 	
 // Animation handler
-void animationStoppedHandler(Animation *animation, bool finished, void *context)
+static void animationStoppedHandler(Animation *animation, bool finished, void *context)
 {
 	Layer *current = text_layer_get_layer((TextLayer *)context);
 	GRect rect = layer_get_frame(current);
@@ -48,7 +50,7 @@ PropertyAnimation* makeAnimationsForLayer(TextLayer *textlayer)
 }
 
 // Animate line
-void makeAnimationsForLayers(Line *line, TextLayer *current, TextLayer *next)
+static void makeAnimationsForLayers(Line *line, TextLayer *current, TextLayer *next)
 {
 	if (line->currentAnimation != NULL) animation_unschedule((Animation*)line->currentAnimation);
 	line->currentAnimation = makeAnimationsForLayer(current);
@@ -64,14 +66,14 @@ void makeAnimationsForLayers(Line *line, TextLayer *current, TextLayer *next)
 }
 
 // Update line
-void updateLineTo(Line *line, char lineStr[2][BUFFER_SIZE], char *value)
+static void updateLineTo(Line *line, char lineStr[2][BUFFER_SIZE], char *value)
 {
 	TextLayer *next, *current;
 	
 	GRect rect = layer_get_frame(text_layer_get_layer(line->currentLayer));
 	current = (rect.origin.x == 0) ? line->currentLayer : line->nextLayer;
 	next = (current == line->currentLayer) ? line->nextLayer : line->currentLayer;
-
+	
 	// Update correct text only
 	if (current == line->currentLayer) {
 		memset(lineStr[1], 0, BUFFER_SIZE);
@@ -87,7 +89,7 @@ void updateLineTo(Line *line, char lineStr[2][BUFFER_SIZE], char *value)
 }
 
 // Check to see if the current line needs to be updated
-bool needToUpdateLine(Line *line, char lineStr[2][BUFFER_SIZE], char *nextValue)
+static bool needToUpdateLine(Line *line, char lineStr[2][BUFFER_SIZE], char *nextValue)
 {
 	char *currentStr;
 	GRect rect = layer_get_frame(text_layer_get_layer(line->currentLayer));
@@ -101,7 +103,7 @@ bool needToUpdateLine(Line *line, char lineStr[2][BUFFER_SIZE], char *nextValue)
 }
 
 // Update screen based on new time
-void display_time(struct tm * tm)
+static void display_time(struct tm *tm)
 {
 	// The current time text will be stored in the following 3 strings
 	char textLine1[BUFFER_SIZE];
@@ -122,7 +124,7 @@ void display_time(struct tm * tm)
 }
 
 // Update screen without animation first time we start the watchface
-void display_initial_time(struct tm *tm)
+static void display_initial_time(struct tm *tm)
 {
 	time_to_3words(tm->tm_hour, tm->tm_min, line1Str[0], line2Str[0], line3Str[0], BUFFER_SIZE);
 	
@@ -132,18 +134,18 @@ void display_initial_time(struct tm *tm)
 }
 
 // Configure the first line of text
-void configureBoldLayer(TextLayer *textlayer)
+static void configureBoldLayer(TextLayer *textlayer)
 {
-	text_layer_set_font(textlayer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
+	text_layer_set_font(textlayer, boldFont);
 	text_layer_set_text_color(textlayer, GColorWhite);
 	text_layer_set_background_color(textlayer, GColorClear);
 	text_layer_set_text_alignment(textlayer, GTextAlignmentLeft);
 }
 
 // Configure for the 2nd and 3rd lines
-void configureLightLayer(TextLayer *textlayer)
+static void configureLightLayer(TextLayer *textlayer)
 {
-	text_layer_set_font(textlayer, fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT));
+	text_layer_set_font(textlayer, lightFont);
 	text_layer_set_text_color(textlayer, GColorWhite);
 	text_layer_set_background_color(textlayer, GColorClear);
 	text_layer_set_text_alignment(textlayer, GTextAlignmentLeft);
@@ -155,29 +157,29 @@ void configureLightLayer(TextLayer *textlayer)
  */ 
 #if DEBUG
 
-void up_single_click_handler(ClickRecognizerRef recognizer, void *context) {
-	t.tm_min += 1;
-	if (t.tm_min >= 60) {
-		t.tm_min -= 60;
-		t.tm_hour += 1;
+static void up_single_click_handler(ClickRecognizerRef recognizer, void *context) {
+	t->tm_min += 1;
+	if (t->tm_min >= 60) {
+		t->tm_min -= 60;
+		t->tm_hour += 1;
 		
-		if (t.tm_hour >= 24) {
-			t.tm_hour -= 24;
+		if (t->tm_hour >= 24) {
+			t->tm_hour -= 24;
 		}
 	}
-	display_time(&t);
+	display_time(t);
 }
 
 void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
-	t.tm_min -= 1;
-	if (t.tm_min < 0) {
-		t.tm_min += 60;
-		t.tm_hour -= 1;
-		if (t.tm_hour < 0) {
-			t.tm_hour +=24;
+	t->tm_min -= 1;
+	if (t->tm_min < 0) {
+		t->tm_min += 60;
+		t->tm_hour -= 1;
+		if (t->tm_hour < 0) {
+			t->tm_hour +=24;
 		}
 	}
-	display_time(&t);
+	display_time(t);
 }
 
 void click_config_provider() {
@@ -187,10 +189,19 @@ void click_config_provider() {
 
 #endif
 
+// Time handler called every minute by the system
+static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
+	display_time(tick_time);
+}
+
 void handle_init() {
 	window = window_create();
 	window_stack_push(window, true);
 	window_set_background_color(window, GColorBlack);
+
+	// Custom fonts
+	lightFont = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_GOTHAM_LIGHT_31));
+	boldFont = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_GOTHAM_BOLD_36));
 
 	// 1st line layer
 	line1.currentLayer = text_layer_create(GRect(0, 18, 144, 50));
@@ -205,17 +216,16 @@ void handle_init() {
 	configureLightLayer(line2.nextLayer);
 
 	// 3rd layers
-	line3.currentLayer = text_layer_create(GRect(0, 92, 144, 50));
-	line3.nextLayer = text_layer_create(GRect(144, 92, 144, 50));
+	line3.currentLayer = text_layer_create(GRect(0, 85, 144, 50));
+	line3.nextLayer = text_layer_create(GRect(144, 85, 144, 50));
 	configureLightLayer(line3.currentLayer);
 	configureLightLayer(line3.nextLayer);
 
 	// Configure time on init
 	time_t now;
 	now = time(NULL);
-	struct tm *local_t = localtime(&now);
-	memcpy(&t, local_t, sizeof(struct tm));
-	display_initial_time(&t);
+	t = localtime(&now);
+	display_initial_time(t);
 	
 	// Load layers
 	Layer * windowLayer = window_get_root_layer(window);
@@ -230,16 +240,18 @@ void handle_init() {
 	// Button functionality
 	window_set_click_config_provider(window, (ClickConfigProvider) click_config_provider);
 #endif
+
+	tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
 }
 
-// Time handler called every minute by the system
-void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
-  display_time(tick_time);
+static void deinit() {
+	tick_timer_service_unsubscribe();
+	window_destroy(window);
 }
 
 int main() {
 	handle_init();
-	tick_timer_service_subscribe(MINUTE_UNIT, &handle_minute_tick);
   	app_event_loop();
+  	deinit();
   	return 0;
 }
