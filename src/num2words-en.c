@@ -1,5 +1,6 @@
 #include "num2words-en.h"
 #include "string.h"
+#include <stdbool.h>
 
 static const char* const ONES[] = {
   "o'clock",
@@ -40,7 +41,7 @@ static const char* const TENS[] = {
   "ninety"
 };
 
-static size_t append_number(char* words, int num) {
+static size_t append_number(char* words, int num, bool use_oh) {
   int tens_val = num / 10 % 10;
   int ones_val = num % 10;
 
@@ -50,7 +51,7 @@ static size_t append_number(char* words, int num) {
     strcat(words, TEENS[ones_val]);
     return strlen(TEENS[ones_val]);
   }
-  if (num != 0) {
+  if (num != 0 && use_oh) {
     strcat(words, TENS[tens_val]);
     len += strlen(TENS[tens_val]);    
   }
@@ -75,18 +76,17 @@ static size_t append_string(char* buffer, const size_t length, const char* str) 
 
 
 void time_to_words(int hours, int minutes, char* words, size_t length) {
-
   size_t remaining = length;
   memset(words, 0, length);
 
   if (hours == 0 || hours == 12) {
     remaining -= append_string(words, remaining, TEENS[2]);
   } else {
-    remaining -= append_number(words, hours % 12);
+    remaining -= append_number(words, hours % 12, false);
   }
 
   remaining -= append_string(words, remaining, " ");
-  remaining -= append_number(words, minutes);
+  remaining -= append_number(words, minutes, true);
   remaining -= append_string(words, remaining, " ");
 }
 
