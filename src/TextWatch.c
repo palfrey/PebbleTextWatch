@@ -11,6 +11,7 @@
 Window *window;
 Layer *batteryLayer;
 BitmapLayer * white_image_layer;
+GBitmap * white_image;
 
 typedef struct {
 	TextLayer* currentLayer;
@@ -274,7 +275,7 @@ void handle_init() {
 	memcpy(&t, local_t, sizeof(struct tm));
 	display_initial_time(&t);
 
-	GBitmap * white_image = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_WHITE);
+	white_image = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_WHITE);
 
 	Layer * windowLayer = window_get_root_layer(window);
   	GRect bounds = layer_get_bounds(windowLayer);
@@ -315,6 +316,17 @@ void deinit() {
 	battery_state_service_unsubscribe();
 	tick_timer_service_unsubscribe();
 	window_destroy(window);
+	gbitmap_destroy(white_image);
+	layer_destroy((Layer*)line1.currentLayer);
+	layer_destroy((Layer*)line1.nextLayer);
+	layer_destroy((Layer*)line2.currentLayer);
+	layer_destroy((Layer*)line2.nextLayer);
+	layer_destroy((Layer*)line3.currentLayer);
+	layer_destroy((Layer*)line3.nextLayer);
+	layer_destroy((Layer*)dateLine.currentLayer);
+	layer_destroy((Layer*)dateLine.nextLayer);
+	layer_destroy((Layer*)white_image_layer);
+	layer_destroy((Layer*)batteryLayer);
 }
 
 int main() {
