@@ -1,5 +1,6 @@
 #include "num2words-en.h"
 #include "string.h"
+#include <stdbool.h>
 
 static const char* const ONES[] = {
   "o'clock",
@@ -28,7 +29,7 @@ static const char* const TEENS[] ={
 };
 
 static const char* const TENS[] = {
-  "",
+  "oh",
   "ten",
   "twenty",
   "thirty",
@@ -40,25 +41,25 @@ static const char* const TENS[] = {
   "ninety"
 };
 
-static size_t append_number(char* words, int num) {
+static size_t append_number(char* words, int num, bool use_oh) {
   int tens_val = num / 10 % 10;
   int ones_val = num % 10;
 
   size_t len = 0;
 
-  if (tens_val > 0) {
-    if (tens_val == 1 && num != 10) {
-      strcat(words, TEENS[ones_val]);
-      return strlen(TEENS[ones_val]);
-    }
-    strcat(words, TENS[tens_val]);
-    len += strlen(TENS[tens_val]);
-    if (ones_val > 0) {
-      strcat(words, " ");
-      len += 1;
-    }
+  if (tens_val == 1 && num != 10) {
+    strcat(words, TEENS[ones_val]);
+    return strlen(TEENS[ones_val]);
   }
-
+  if (num != 0 && (use_oh || tens_val > 0)) {
+    strcat(words, TENS[tens_val]);
+    len += strlen(TENS[tens_val]);    
+  }
+  if (ones_val > 0) {
+    strcat(words, " ");
+    len += 1;
+  }
+  
   if (ones_val > 0 || num == 0) {
     strcat(words, ONES[ones_val]);
     len += strlen(ONES[ones_val]);
@@ -75,18 +76,17 @@ static size_t append_string(char* buffer, const size_t length, const char* str) 
 
 
 void time_to_words(int hours, int minutes, char* words, size_t length) {
-
   size_t remaining = length;
   memset(words, 0, length);
 
   if (hours == 0 || hours == 12) {
     remaining -= append_string(words, remaining, TEENS[2]);
   } else {
-    remaining -= append_number(words, hours % 12);
+    remaining -= append_number(words, hours % 12, false);
   }
 
   remaining -= append_string(words, remaining, " ");
-  remaining -= append_number(words, minutes);
+  remaining -= append_number(words, minutes, true);
   remaining -= append_string(words, remaining, " ");
 }
 
@@ -114,11 +114,31 @@ void time_to_3words(int hours, int minutes, char *line1, char *line2, char *line
 	}
 	
 	// Truncate long teen values
-	if (strlen(line2) > 7) {
-		char *pch = strstr(line2, "teen");
+	if (strlen(line2) > 7 && minutes != 13) {
+		pch = strstr(line2, "teen");
 		if (pch) {
 			memcpy(line3, pch, 4);
 			pch[0] = 0;
 		}
 	}
+}
+
+void date_to_words(struct tm* tm, char *line, size_t length) {
+  char *postfix;
+  if (tm->tm_mday == 1 || tm->tm_mday == 21 || tm->tm_mday == 31) {
+    postfix = "st";
+  }
+  else if (tm->tm_mday == 2 || tm->tm_mday == 22) {
+    postfix = "nd";
+  }
+  else if (tm->tm_mday == 3 || tm->tm_mday == 23) {
+    postfix = "rd";
+  }
+  else {
+    postfix = "th";
+  }
+  int sofar = strftime(line, length, "%A, %d", tm);
+  strcat(line, postfix);
+  int used = sofar + strlen(postfix);
+  strftime(&line[used], length-used, " %B %Y", tm);  
 }

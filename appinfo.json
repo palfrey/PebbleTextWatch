@@ -1,0 +1,25 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "palfrey@tevp.net",
+    "longName": "test",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/bluetooth.png",
+                "name": "BLUETOOTH",
+                "type": "png-trans"
+            }
+        ]
+    },
+    "shortName": "test",
+    "uuid": "33b85937-864a-4b2d-ae06-f0cca8fff62a",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
